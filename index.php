@@ -94,6 +94,14 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function () {
+  // Function to update serial numbers dynamically
+  function updateSerialNumbers() {
+    $("#postTableBody tr").each(function (index) {
+      $(this).find("td:first").text(index + 1); // Update the first column with the new index
+    });
+  }
+
+  // Handle form submission for new posts
   $("#createPostForm").on("submit", function (e) {
     e.preventDefault(); // Prevent default form submission
 
@@ -113,18 +121,25 @@
             ? URL.createObjectURL($("#postImage")[0].files[0])
             : null;
 
+          // Add new post as a table row
           var newPostRow = `
             <tr>
-              <td>#</td>
+              <td>#</td> <!-- Temporary placeholder for serial -->
               <td>${postText}</td>
               <td>
-                ${postImage ? `<img src="${postImage}" alt="Post Image" width="100"/>` : ""}
+                ${
+                  postImage
+                    ? `<img src="${postImage}" alt="Post Image" width="100"/>`
+                    : ""
+                }
               </td>
               <td>${postFeeling}</td>
             </tr>
           `;
 
           $("#postTableBody").prepend(newPostRow); // Add new row to the table
+          updateSerialNumbers(); // Update serial numbers for all rows
+
           $("#createPostForm")[0].reset(); // Reset the form
           $("#create_post_modal").modal("hide"); // Close the modal
         } else {
@@ -136,10 +151,7 @@
       },
     });
   });
-});
 
-
-$(document).ready(function () {
   // Load existing posts
   $.ajax({
     url: "fetch_posts.php",
@@ -172,6 +184,7 @@ $(document).ready(function () {
     },
   });
 });
+
 
 
 </script>
