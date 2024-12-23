@@ -37,6 +37,25 @@
   </div>
 </div>
 
+<!-- Display Data -->
+<!-- Display Data -->
+<div id="postContainer">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Post Text</th>
+        <th>Image/Video</th>
+        <th>Feeling/Activity</th>
+      </tr>
+    </thead>
+    <tbody id="postTableBody">
+      <!-- Posts will be dynamically appended here -->
+    </tbody>
+  </table>
+</div>
+<!-- End Display Data -->
+
 <!-- Modal for Creating a Post -->
 <div class="modal fade" id="create_post_modal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -74,34 +93,87 @@
 <!-- AJAX Script for Form Submission -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  $(document).ready(function() {
-    // Handle form submission
-    $("#createPostForm").on("submit", function(e) {
-      e.preventDefault(); // Prevent default form submission
+  $(document).ready(function () {
+  $("#createPostForm").on("submit", function (e) {
+    e.preventDefault(); // Prevent default form submission
 
-      var formData = new FormData(this); // Get the form data, including the file
+    var formData = new FormData(this);
 
-      $.ajax({
-        url: "submit_post.php",  // PHP script to handle the submission
-        type: "POST",
-        data: formData,
-        contentType: false,  // Disable content type to allow file uploads
-        processData: false,  // Don't process the data (allow files)
-        success: function(response) {
-          if (response === 'success') {
-            alert("Post created successfully!");
-            $('#createPostForm')[0].reset();  // Reset the form after submission
-            $('#create_post_modal').modal('hide');  // Close the modal
-          } else {
-            alert("Error creating post. Please try again.");
-          }
-        },
-        error: function() {
-          alert("An error occurred. Please try again.");
+    $.ajax({
+      url: "submit_post.php",
+      type: "POST",
+      data: formData,
+      contentType: false,
+      processData: false,
+      success: function (response) {
+        if (response === "success") {
+          var postText = $("#postText").val();
+          var postFeeling = $("#postFeeling").val();
+          var postImage = $("#postImage")[0].files[0]
+            ? URL.createObjectURL($("#postImage")[0].files[0])
+            : null;
+
+          var newPostRow = `
+            <tr>
+              <td>#</td>
+              <td>${postText}</td>
+              <td>
+                ${postImage ? `<img src="${postImage}" alt="Post Image" width="100"/>` : ""}
+              </td>
+              <td>${postFeeling}</td>
+            </tr>
+          `;
+
+          $("#postTableBody").prepend(newPostRow); // Add new row to the table
+          $("#createPostForm")[0].reset(); // Reset the form
+          $("#create_post_modal").modal("hide"); // Close the modal
+        } else {
+          alert("Error creating post. Please try again.");
         }
-      });
+      },
+      error: function () {
+        alert("An error occurred. Please try again.");
+      },
     });
   });
+});
+
+
+$(document).ready(function () {
+  // Load existing posts
+  $.ajax({
+    url: "fetch_posts.php",
+    type: "GET",
+    success: function (data) {
+      var posts = JSON.parse(data);
+      var tableBody = "";
+
+      posts.forEach(function (post, index) {
+        tableBody += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${post.post_text}</td>
+            <td>
+              ${
+                post.post_image
+                  ? `<img src="${post.post_image}" alt="Post Image" width="100"/>`
+                  : ""
+              }
+            </td>
+            <td>${post.feeling_activity}</td>
+          </tr>
+        `;
+      });
+
+      $("#postTableBody").html(tableBody); // Populate the table with posts
+    },
+    error: function () {
+      alert("Failed to load posts.");
+    },
+  });
+});
+
+
 </script>
     
 </body>
